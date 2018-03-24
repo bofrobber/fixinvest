@@ -81,3 +81,8 @@ type Fund struct {
 
 	cash float32 //现金账号。目前没有。这个本来可以计算压力
 }
+
+func GetNewFund() *Fund {
+
+	return &Fund{}
+}

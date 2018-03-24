@@ -1,13 +1,13 @@
 package main
 
 import (
-	_ "fixinvest/routers"
+	_ "github.com/bofrobber/fixinvest/routers"
 
 	"github.com/astaxie/beego"
 )
 
 func main() {
-	beego.SetLogger("file", `{"filename":"logs/test.log"}`) //这个方法使用了beego中默认的logs对象BeeLogger
+	beego.SetLogger("file", `{"filename":".\\logs\\test.log"}`) //这个方法使用了beego中默认的logs对象BeeLogger
 
 	/*日志属性比较多
 	设置的例子如下所示：
