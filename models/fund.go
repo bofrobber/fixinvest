@@ -1,5 +1,9 @@
 package models
 
+import (
+	"time"
+)
+
 //用什么DB好呢，用Redis还是mongodb
 //这次学习一下redis的使用吧。redis没有分表，直接查询吧
 
@@ -19,11 +23,23 @@ type FundBaseInfo struct {
 
 //每次的投资记录，可以分成更小的。cost和share
 type FundValue struct {
-	cost            float32 //投资花费
-	share           float32 //份额
-	value           float32 //价值。一次投资时，基本等于cost = cost - Poundage.buy
-	one_share_value float32 //1份价格
-	want_value      float32 //总投资的预期总价值
+	cost       float32 //投资花费
+	share      float32 //份额
+	value      float32 //价值。一次投资时，基本等于cost = cost - Poundage.buy
+	price      float32 //1份价格
+	want_value float32 //总投资的预期总价值
+}
+
+//更新价格，主要是更新价值,返回价值的变化
+func (p *FundValue) SetPrice(price float32) float32 {
+	old_value := p.value
+
+	p.price = price
+	p.value = price * p.share
+
+	//更新投资价值变更？新增的价值（贬值就是负数了）
+	diff_value := p.value - old_value
+	return diff_value
 }
 
 //投资记录
@@ -59,7 +75,7 @@ const (
 
 type FixInvestPlan struct {
 	cost        float32
-	invert_type float32
+	invert_type int
 }
 
 //收益情况 -- 主要是收割或者割肉的表现。
@@ -80,9 +96,22 @@ type Fund struct {
 	gains_records []FundGainsInfo
 
 	cash float32 //现金账号。目前没有。这个本来可以计算压力
+
+	plan FixInvestPlan //定投计划
+}
+
+//基本查询情况，记录基金信息和资产概要信息
+type FundQueryInfo struct {
+	info    FundBaseInfo
+	summary FundSummary
 }
 
 func GetNewFund() *Fund {
 
-	return &Fund{}
+	return &Fund{start_time: time.Now().String()}
+}
+
+func (p *Fund) SetFundPrice(price float32) bool {
+	p.summary.value.SetPrice(price)
+	return true
 }

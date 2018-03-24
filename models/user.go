@@ -12,6 +12,8 @@ type User struct {
 
 	name string
 	pwd  string
+
+	plan FixInvestPlan
 }
 
 /*操作
@@ -34,6 +36,8 @@ type User struct {
 func GetNewUser() *User {
 	user := &User{}
 	user.buss = make(map[string]*FundBuss)
+	user.plan.invert_type = INVEST_WEEK
+	user.plan.cost = 300 //默认300
 
 	return user
 }
@@ -76,6 +80,7 @@ func (p *User) AddFund(buss_name string, fund_info FundBaseInfo) bool {
 	}
 
 	v.AddFund(fund_info)
+	v.SetFundInvestPlan(fund_info.id, p.plan)
 	return true
 }
 
@@ -108,7 +113,7 @@ func (p *User) UpdateFundId(buss_name string, old_fund_id string, new_fund_id st
 }
 
 //更新费率
-func (p *User) UpdateCost(buss_name string, fund_id string, poudage Poundage) {
+func (p *User) UpdatePoudage(buss_name string, fund_id string, poudage Poundage) {
 	if p.buss == nil {
 		beego.Error("RemoveFund buss is nil")
 	}
@@ -121,8 +126,91 @@ func (p *User) UpdateCost(buss_name string, fund_id string, poudage Poundage) {
 	v.UpdatePoudage(fund_id, poudage)
 }
 
-//设置定投计划
+/*设置定投计划
+type 定投周期
+cost 定投额度，默认所有的都是这个。具体也可以分开
+*/
+func (p *User) SetInvestPlan(plan_type int, cost float32) {
+	p.plan.invert_type = plan_type
+	p.plan.cost = cost
+}
 
-//查询预计购买金额
+func (p *User) SetFundInvestPlan(buss_name, fund_id string, plan_type int, cost float32) bool {
+	if p.buss == nil {
+		beego.Error("RemoveFund buss is nil")
+		return false
+	}
 
-//购买
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return false
+	}
+
+	plan := FixInvestPlan{invert_type: plan_type, cost: cost}
+
+	return v.SetFundInvestPlan(fund_id, plan)
+}
+
+//设置基金价格，一个一个设置好了。也可以支持批量设置
+func (p *User) SetFundPrice(buss_name, fund_id string, price float32) bool {
+	if p.buss == nil {
+		beego.Error("SetCurInvest buss is nil")
+		return false
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return false
+	}
+
+	return v.SetFundPrice(fund_id, price)
+}
+
+//查询盈利情况
+func (p *User) GetAllFundSummaryInfo(buss_name string) map[string]*FundQueryInfo {
+	//返回情况
+	if p.buss == nil {
+		beego.Error("SetCurInvest buss is nil")
+		return nil
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return nil
+	}
+
+	return v.GetAllFundSummaryInfo()
+}
+
+func (p *User) GetAllFundInfo(buss_name string) map[string]*Fund {
+	//返回情况 所有信息了
+	if p.buss == nil {
+		beego.Error("SetCurInvest buss is nil")
+		return nil
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return nil
+	}
+
+	return v.funds
+}
+
+//定投变更怎么计算，这个也是要搞懂，目前这个反正是比较简单
+//投资，如果不按规定补仓，回导致的结果是want_value变少了。
+func (p *User) Invest(buss_name string, fund_id string, value float32) {
+	//返回情况 所有信息了
+	if p.buss == nil {
+		beego.Error("Invest buss is nil")
+		return
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return
+	}
+
+	v.Invest(fund_id, value)
+
+}

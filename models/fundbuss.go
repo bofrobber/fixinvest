@@ -77,3 +77,67 @@ func (p *FundBuss) UpdatePoudage(fund_id string, poudage Poundage) int {
 
 	return 0
 }
+
+func (p *FundBuss) SetFundInvestPlan(fund_id string, plan FixInvestPlan) bool {
+	beego.Info("FundBuss.SetFundInvestPlan", plan)
+	if p.funds == nil {
+		return false
+	}
+
+	v, ok := p.funds[fund_id]
+	if !ok {
+		return false
+	}
+
+	v.plan = plan
+
+	return true
+}
+
+func (p *FundBuss) SetFundPrice(fund_id string, price float32) bool {
+	beego.Info("FundBuss.SetFundPrice["+fund_id+"] price", price)
+	if p.funds == nil {
+		return false
+	}
+
+	v, ok := p.funds[fund_id]
+	if !ok {
+		return false
+	}
+
+	return v.SetFundPrice(price)
+}
+
+//查询盈利情况
+func (p *FundBuss) GetAllFundSummaryInfo() map[string]*FundQueryInfo {
+	ret := make(map[string]*FundQueryInfo)
+
+	for k, v := range p.funds {
+		info := &FundQueryInfo{info: v.info, summary: v.summary}
+		ret[k] = info
+	}
+
+	return ret
+}
+
+//投资
+func (p *FundBuss) Invest(fund_id string, value float32) {
+	beego.Info("FundBuss.Invest["+fund_id+"] value", value)
+	if p.funds == nil {
+		return
+	}
+
+	v, ok := p.funds[fund_id]
+	if !ok {
+		return
+	}
+
+	//TODO，需要做投资记录，更新最新的投资情况,手续费怎么计算
+	v.summary.value.cost += value
+	//v.summary.value.share += （cost - 费用）/price
+	//更新want_value
+	//更新最大投资
+}
+
+//割肉或者收益
+//func(0)
