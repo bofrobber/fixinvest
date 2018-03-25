@@ -44,6 +44,7 @@ func (p *FundValue) SetPrice(price float32) float32 {
 
 //投资记录
 type FundInverstRecrd struct {
+	time     string
 	value    FundValue
 	new_cost float32 //新增投資
 	gains    float32 //收益
@@ -81,7 +82,7 @@ type FixInvestPlan struct {
 //收益情况 -- 主要是收割或者割肉的表现。
 type FundGainsInfo struct {
 	captial float32 //本金
-	gains   float32 //本金
+	gains   float32 //收益
 }
 
 //基金
@@ -102,8 +103,11 @@ type Fund struct {
 
 //基本查询情况，记录基金信息和资产概要信息
 type FundQueryInfo struct {
-	info    FundBaseInfo
-	summary FundSummary
+	info             FundBaseInfo
+	summary          FundSummary
+	tmp_gains        float32 //临时收益情况，用来判断
+	next_invest_cost float32 //根据定投计划，计算下次要投资的钱
+	next_gains_value float32 //下次收割价值。只有next_invest_cost=0 才可能有收益
 }
 
 func GetNewFund() *Fund {

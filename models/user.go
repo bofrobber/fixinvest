@@ -43,6 +43,8 @@ func GetNewUser() *User {
 }
 
 func (p *User) AddFundBuss(name string) bool {
+	beego.Info("AddFundBuss:", name)
+
 	if p.buss == nil {
 		return false
 	}
@@ -58,6 +60,8 @@ func (p *User) AddFundBuss(name string) bool {
 
 //这个不应该被调用，不然历史数据不就没有了。
 func (p *User) RemoveFundBuss(name string) {
+	beego.Info("RemoveFundBuss:", name)
+
 	if p.buss == nil {
 		return
 	}
@@ -85,6 +89,8 @@ func (p *User) AddFund(buss_name string, fund_info FundBaseInfo) bool {
 }
 
 func (p *User) RemoveFund(buss_name string, fund_id string) {
+	beego.Info("RemoveFund [", buss_name, "]", "[", fund_id, "]")
+
 	if p.buss == nil {
 		beego.Error("RemoveFund buss is nil")
 	}
@@ -100,6 +106,8 @@ func (p *User) RemoveFund(buss_name string, fund_id string) {
 //先做简单的更新信息,只更新基本信息，基本信息包括基金id，注意，基金id更新后，也不能重复，比如360上市后，用了的360基金就更换id了
 //还有就是费率，其他暂时不更新
 func (p *User) UpdateFundId(buss_name string, old_fund_id string, new_fund_id string) {
+	beego.Info("UpdateFundId [", buss_name, "]", "old:[", old_fund_id, "] new:[", new_fund_id, "]")
+
 	if p.buss == nil {
 		beego.Error("RemoveFund buss is nil")
 	}
@@ -114,6 +122,8 @@ func (p *User) UpdateFundId(buss_name string, old_fund_id string, new_fund_id st
 
 //更新费率
 func (p *User) UpdatePoudage(buss_name string, fund_id string, poudage Poundage) {
+	beego.Info("UpdatePoudage:", buss_name, "poundage:", poudage)
+
 	if p.buss == nil {
 		beego.Error("RemoveFund buss is nil")
 	}
@@ -131,11 +141,15 @@ type 定投周期
 cost 定投额度，默认所有的都是这个。具体也可以分开
 */
 func (p *User) SetInvestPlan(plan_type int, cost float32) {
+	beego.Info("default SetInvestPlan type:", plan_type, "cost:", cost)
+
 	p.plan.invert_type = plan_type
 	p.plan.cost = cost
 }
 
 func (p *User) SetFundInvestPlan(buss_name, fund_id string, plan_type int, cost float32) bool {
+	beego.Info("SetFundInvestPlan type:", plan_type, "cost:", cost, "buss:[", buss_name, "][", fund_id, "]")
+
 	if p.buss == nil {
 		beego.Error("RemoveFund buss is nil")
 		return false
@@ -153,6 +167,7 @@ func (p *User) SetFundInvestPlan(buss_name, fund_id string, plan_type int, cost 
 
 //设置基金价格，一个一个设置好了。也可以支持批量设置
 func (p *User) SetFundPrice(buss_name, fund_id string, price float32) bool {
+	beego.Info("SetFundPrice buss[", buss_name, "][", fund_id, "] price:", price)
 	if p.buss == nil {
 		beego.Error("SetCurInvest buss is nil")
 		return false
@@ -168,6 +183,8 @@ func (p *User) SetFundPrice(buss_name, fund_id string, price float32) bool {
 
 //查询盈利情况
 func (p *User) GetAllFundSummaryInfo(buss_name string) map[string]*FundQueryInfo {
+	beego.Info("GetAllFundSummaryInfo buss[", buss_name, "]")
+
 	//返回情况
 	if p.buss == nil {
 		beego.Error("SetCurInvest buss is nil")
@@ -183,6 +200,8 @@ func (p *User) GetAllFundSummaryInfo(buss_name string) map[string]*FundQueryInfo
 }
 
 func (p *User) GetAllFundInfo(buss_name string) map[string]*Fund {
+	beego.Info("GetAllFundInfo buss[", buss_name, "]")
+
 	//返回情况 所有信息了
 	if p.buss == nil {
 		beego.Error("SetCurInvest buss is nil")
@@ -200,7 +219,8 @@ func (p *User) GetAllFundInfo(buss_name string) map[string]*Fund {
 //定投变更怎么计算，这个也是要搞懂，目前这个反正是比较简单
 //投资，如果不按规定补仓，回导致的结果是want_value变少了。
 func (p *User) Invest(buss_name string, fund_id string, value float32) {
-	//返回情况 所有信息了
+	beego.Info("Invest buss[", buss_name, "][", fund_id, "] cost:", value)
+
 	if p.buss == nil {
 		beego.Error("Invest buss is nil")
 		return
@@ -213,4 +233,37 @@ func (p *User) Invest(buss_name string, fund_id string, value float32) {
 
 	v.Invest(fund_id, value)
 
+}
+
+//实际要转换成份额。为了方便统计，使用价值，在查询完成后计算
+func (p *User) Gain(buss_name string, fund_id string, value float32) float32 {
+	beego.Info("Gain buss[", buss_name, "][", fund_id, "] cost:", value)
+
+	if p.buss == nil {
+		beego.Error("Gain buss is nil")
+		return 0
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return 0
+	}
+
+	return v.Gain(fund_id, value)
+}
+
+func (p *User) AdjustShare(buss_name string, fund_id string, share float32) {
+	beego.Info("AdjustShare buss[", buss_name, "][", fund_id, "] share:", share)
+
+	if p.buss == nil {
+		beego.Error("AdjustShare buss is nil")
+		return
+	}
+
+	v, ok := p.buss[buss_name]
+	if !ok {
+		return
+	}
+
+	v.AdjustShare(fund_id, share)
 }

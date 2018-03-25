@@ -1,10 +1,11 @@
 package routers
 
 import (
-	"github.com/bofrobber/fixinvest/controllers"
 	"github.com/astaxie/beego"
+	"github.com/bofrobber/fixinvest/controllers"
 )
 
 func init() {
-    beego.Router("/", &controllers.MainController{})
+	beego.Router("/", &controllers.MainController{})
+
 }
